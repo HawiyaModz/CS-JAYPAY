@@ -29,8 +29,8 @@
       background: #1a1a23;
       border-radius: 24px;
       overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
       border: 1px solid #2a2a35;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
     }
     #header {
       padding: 14px 20px;
@@ -55,7 +55,7 @@
       border-radius: 20px;
       font-size: 10px;
       font-weight: 500;
-      color: white;
+      color: #fff;
     }
     #header .status {
       font-size: 12px;
@@ -83,7 +83,7 @@
       border: 1px solid #333340;
       border-radius: 40px;
       padding: 8px 16px;
-      color: white;
+      color: #fff;
       font-size: 13px;
       outline: none;
     }
@@ -95,7 +95,7 @@
       border: 1px solid #333340;
       border-radius: 40px;
       padding: 8px 14px;
-      color: white;
+      color: #fff;
       font-size: 13px;
       outline: none;
       cursor: pointer;
@@ -108,7 +108,7 @@
       border: none;
       border-radius: 40px;
       padding: 8px 20px;
-      color: white;
+      color: #fff;
       font-size: 13px;
       cursor: pointer;
       transition: background 0.2s;
@@ -172,7 +172,7 @@
     .message.user .bubble {
       background: #4f46e5;
       border-color: #4f46e5;
-      color: white;
+      color: #fff;
       border-bottom-right-radius: 4px;
     }
     .message.assistant .bubble {
@@ -180,7 +180,7 @@
     }
     .message .avatar.user-avatar {
       background: #4f46e5;
-      color: white;
+      color: #fff;
     }
     .message .avatar.assistant-avatar {
       background: #22c55e;
@@ -231,7 +231,7 @@
       border: 1px solid #333340;
       border-radius: 40px;
       padding: 12px 20px;
-      color: white;
+      color: #fff;
       font-size: 15px;
       outline: none;
       transition: border 0.2s;
@@ -248,7 +248,7 @@
       border-radius: 40px;
       padding: 0 28px;
       font-weight: 600;
-      color: white;
+      color: #fff;
       font-size: 14px;
       cursor: pointer;
       transition: background 0.2s, transform 0.1s;
@@ -273,6 +273,15 @@
       text-align: center;
       font-size: 14px;
     }
+    .info-message {
+      color: #60a5fa;
+      background: #0a1a2a;
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 1px solid #1a3a5a;
+      text-align: center;
+      font-size: 13px;
+    }
     @media (max-width: 600px) {
       #app {
         max-height: 100vh;
@@ -295,7 +304,7 @@
   <div id="app">
     <!-- HEADER -->
     <div id="header">
-      <h1>💬 Groq Chat <span>v1</span></h1>
+      <h1>💬 Groq Chat <span>v2</span></h1>
       <div class="status" id="status">● Offline</div>
     </div>
 
@@ -303,12 +312,9 @@
     <div id="control-area">
       <input type="password" id="apiKeyInput" placeholder="Masukkan GROQ API Key..." />
       <select id="modelSelect">
-        <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
-        <option value="llama3-70b-8192">llama3-70b-8192</option>
-        <option value="gemma2-9b-it">gemma2-9b-it</option>
-        <option value="llama3-8b-8192">llama3-8b-8192</option>
+        <option value="">-- Pilih model --</option>
       </select>
-      <button id="setKeyBtn" class="primary">Set Key</button>
+      <button id="setKeyBtn" class="primary">Set Key & Refresh Model</button>
     </div>
     <div class="warning-banner">
       ⚠️ API Key hanya di memori browser. Jangan bagikan file ini ke orang lain.
@@ -318,7 +324,7 @@
     <div id="messages">
       <div class="message assistant">
         <div class="avatar assistant-avatar">AI</div>
-        <div class="bubble">Halo! Masukkan API Key, pilih model, lalu mulai ngobrol.</div>
+        <div class="bubble">Masukkan API Key, klik "Set Key", pilih model, lalu chat.</div>
       </div>
     </div>
 
@@ -330,10 +336,11 @@
   </div>
 
   <script>
-    // ================  STATE  ====================
+    // ================  STATE ====================
     let API_KEY = '';
     let isReady = false;
-    let currentModel = 'llama-3.1-8b-instant';
+    let currentModel = '';
+    let availableModels = [];
 
     const messagesContainer = document.getElementById('messages');
     const inputField = document.getElementById('input');
@@ -343,12 +350,10 @@
     const setKeyBtn = document.getElementById('setKeyBtn');
     const modelSelect = document.getElementById('modelSelect');
 
-    // System prompt (bisa diubah)
     const SYSTEM_PROMPT = 'Kamu adalah asisten yang ramah dan membantu. Jawablah dengan singkat dan jelas dalam bahasa Indonesia.';
-
     let conversation = [{ role: 'system', content: SYSTEM_PROMPT }];
 
-    // ================  FUNGSI UTILITY  ============
+    // ================  UTILITY ====================
     function updateStatus(online) {
       statusEl.textContent = online ? '● Online' : '● Offline';
       statusEl.className = 'status' + (online ? ' online' : '');
@@ -401,22 +406,97 @@
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    // ================  SET API KEY  ===============
-    function setApiKey() {
+    function showInfo(msg) {
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'info-message';
+      infoDiv.textContent = `ℹ️ ${msg}`;
+      messagesContainer.appendChild(infoDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // ================  FETCH MODELS ===============
+    async function fetchModels(apiKey) {
+      try {
+        const res = await fetch('https://api.groq.com/openai/v1/models', {
+          headers: { Authorization: `Bearer ${apiKey}` }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status} - Gagal ambil daftar model`);
+        const data = await res.json();
+        // Filter model yang active dan support chat (biasanya semua)
+        const models = data.data
+          .filter(m => m.active !== false)
+          .map(m => m.id)
+          .sort();
+        return models;
+      } catch (e) {
+        throw new Error(`Tidak bisa mengambil model: ${e.message}`);
+      }
+    }
+
+    // ================  SET API KEY & LOAD MODELS ===============
+    async function setApiKey() {
       const key = apiKeyInput.value.trim();
-      if (key.startsWith('gsk_') && key.length > 20) {
-        API_KEY = key;
+      if (!key.startsWith('gsk_') || key.length < 20) {
+        alert('❌ API Key tidak valid. Pastikan diawali "gsk_" dan panjang > 20 karakter.');
+        return;
+      }
+
+      // Simpan sementara
+      API_KEY = key;
+      sessionStorage.setItem('groq_api_key', key);
+
+      // Tampilkan loading
+      modelSelect.innerHTML = '<option value="">⏳ Memuat model...</option>';
+      modelSelect.disabled = true;
+      setKeyBtn.disabled = true;
+      setKeyBtn.textContent = 'Memuat...';
+
+      try {
+        const models = await fetchModels(key);
+        availableModels = models;
+        // Isi dropdown
+        modelSelect.innerHTML = '';
+        models.forEach(mid => {
+          const opt = document.createElement('option');
+          opt.value = mid;
+          opt.textContent = mid;
+          modelSelect.appendChild(opt);
+        });
+        // Pilih model default yang umum tersedia
+        const defaultModel = models.find(m => m.includes('llama-3.1-8b-instant')) ||
+                             models.find(m => m.includes('llama3-70b')) ||
+                             models.find(m => m.includes('gemma2')) ||
+                             models[0];
+        if (defaultModel) {
+          modelSelect.value = defaultModel;
+          currentModel = defaultModel;
+        } else if (models.length > 0) {
+          modelSelect.value = models[0];
+          currentModel = models[0];
+        }
+
+        // Aktifkan
         isReady = true;
-        sessionStorage.setItem('groq_api_key', key);
         inputField.disabled = false;
         sendBtn.disabled = false;
         updateStatus(true);
         apiKeyInput.value = '';
         apiKeyInput.placeholder = '✅ Key tersimpan';
+        addMessage('assistant', `✅ API Key valid! Ditemukan ${models.length} model. Pilih model dan mulai chat.`);
+        showInfo(`Model aktif: ${currentModel}`);
         inputField.focus();
-        addMessage('assistant', '✅ API Key berhasil! Pilih model dan mulai chat.');
-      } else {
-        alert('❌ API Key tidak valid. Pastikan diawali "gsk_" dan panjangnya > 20 karakter.');
+
+      } catch (error) {
+        showError(`Gagal memuat model: ${error.message}`);
+        modelSelect.innerHTML = '<option value="">-- Gagal memuat --</option>';
+        isReady = false;
+        inputField.disabled = true;
+        sendBtn.disabled = true;
+        updateStatus(false);
+      } finally {
+        modelSelect.disabled = false;
+        setKeyBtn.disabled = false;
+        setKeyBtn.textContent = 'Set Key & Refresh Model';
       }
     }
 
@@ -425,18 +505,21 @@
       if (e.key === 'Enter') setApiKey();
     });
 
-    // ================  SEND MESSAGE  ===============
+    // ================  SEND MESSAGE ===============
     async function sendMessage() {
       if (!isReady) {
-        alert('Masukkan API Key dulu!');
+        alert('Masukkan API Key dan pilih model dulu!');
         return;
       }
 
       const text = inputField.value.trim();
       if (!text) return;
 
-      // Ambil model terpilih
       currentModel = modelSelect.value;
+      if (!currentModel) {
+        alert('Pilih model terlebih dahulu!');
+        return;
+      }
 
       inputField.disabled = true;
       sendBtn.disabled = true;
@@ -474,10 +557,11 @@
 
       } catch (error) {
         removeTyping();
-        showError(`Error: ${error.message}`);
-        // Jika error karena model, beri saran ganti model
-        if (error.message.toLowerCase().includes('model')) {
-          showError('💡 Coba ganti model di dropdown di atas. Model yang dipilih mungkin tidak tersedia.');
+        const errText = error.message;
+        showError(`Error: ${errText}`);
+        // Jika error karena model, sarankan ganti
+        if (errText.toLowerCase().includes('model') || errText.toLowerCase().includes('does not exist')) {
+          showInfo('💡 Coba ganti model di dropdown. Jika masih error, klik "Set Key & Refresh Model" untuk memuat ulang daftar model.');
         }
       } finally {
         inputField.disabled = false;
@@ -491,31 +575,27 @@
       if (e.key === 'Enter') sendMessage();
     });
 
-    // ================  RESTORE SESSION  ============
-    const savedKey = sessionStorage.getItem('groq_api_key');
-    if (savedKey && savedKey.startsWith('gsk_')) {
-      API_KEY = savedKey;
-      isReady = true;
-      inputField.disabled = false;
-      sendBtn.disabled = false;
-      updateStatus(true);
-      apiKeyInput.placeholder = '✅ Key tersimpan (session)';
-      // Tambahkan pesan selamat datang
-      setTimeout(() => {
-        addMessage('assistant', '👋 Selamat datang kembali! Saya siap membantu.');
-      }, 300);
-    }
-
-    // Ganti model → update info (opsional)
+    // Ganti model → update info (tidak spam)
     modelSelect.addEventListener('change', () => {
-      if (isReady) {
-        const m = modelSelect.value;
-        // Tampilkan notifikasi kecil di konsol saja agar tidak spam
-        console.log(`Model diganti ke: ${m}`);
+      if (isReady && modelSelect.value) {
+        currentModel = modelSelect.value;
+        showInfo(`Model diganti ke: ${currentModel}`);
       }
     });
 
-    console.log('✅ Groq Chat Room siap!');
+    // ================  RESTORE SESSION ============
+    const savedKey = sessionStorage.getItem('groq_api_key');
+    if (savedKey && savedKey.startsWith('gsk_')) {
+      API_KEY = savedKey;
+      // Isi input dengan key (tapi disembunyikan) agar user tahu
+      apiKeyInput.value = savedKey;
+      // Langsung set key otomatis
+      setTimeout(() => {
+        setApiKey();
+      }, 500);
+    }
+
+    console.log('✅ Groq Chat Room v2 siap!');
   </script>
 </body>
 </html>
