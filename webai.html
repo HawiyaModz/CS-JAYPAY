@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Customer Service JAYPAY - AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js">
+    </script>
+    <style>
+        /* ===== RESET & VARIABEL ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #42A5F5;
+            --primary-dark: #1a73e8;
+            --primary-light: #e3f2fd;
+            --primary-gradient: linear-gradient(135deg, #42A5F5 0%, #1a73e8 100%);
+            --bg: #eef2f7;
+            --text-dark: #1a2a3a;
+            --text-muted: #6c7a8a;
+            --card-shadow: 0 8px 32px rgba(66, 165, 245, 0.12);
+            --radius: 24px;
+            --green: #43a047;
+            --red: #e53935;
+            --orange: #fb8c00;
+            --bubble-user: #42A5F5;
+            --bubble-bot: #ffffff;
+            --shadow-msg: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --verified-blue: #1DA1F2;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-container {
+            max-width: 500px;
+            width: 100%;
+            height: 100%;
+            max-height: 100vh;
+            background: #ffffff;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: none;
+            border-radius: 0;
+            transition: all 0.2s;
+        }
+
+        /* ===== HEADER ===== */
+        .chat-header {
+            background: var(--primary-gradient);
+            padding: 16px 20px 14px 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .chat-header .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            overflow: hidden;
+        }
+
+        .chat-header .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .chat-header .info {
+            flex: 1;
+        }
+
+        .chat-header .info h1 {
+            font-size: 17px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-header .info h1 .badge-ai {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            letter-spacing: 0.5px;
+            animation: glow-badge 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-badge {
+            0%,
+            100% {
+                box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        .chat-header .info p {
+            font-size: 11px;
+            opacity: 0.85;
+            margin: 2px 0 0 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .chat-header .info .dot-online {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #43a047;
+            display: inline-block;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.6);
+                opacity: 0.6;
+            }
+        }
+
+        .chat-header .user-info {
+            font-size: 10px;
+            opacity: 0.75;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 14px;
+            border-radius: 20px;
+            white-space: nowrap;
+            max-width: 110px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        /* ===== AI STATUS BAR ===== */
+        .ai-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 9px;
+            padding: 2px 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .ai-status-bar .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .ai-status-bar .status-dot.online {
+            background: #4ade80;
+        }
+        .ai-status-bar .status-dot.offline {
+            background: #f87171;
+        }
+        .ai-status-bar .status-dot.loading {
+            background: #fbbf24;
+            animation: pulse-dot 0.8s ease-in-out infinite;
+        }
+
+        /* ===== MESSAGES ===== */
+        .chat-messages {
+            flex: 1;
+            padding: 16px 18px;
+            overflow-y: auto;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .message {
+            max-width: 88%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 13.5px;
+            line-height: 1.6;
+            word-break: break-word;
+            animation: msgIn 0.3s ease;
+            box-shadow: var(--shadow-msg);
+        }
+
+        .message.user {
+            background: var(--bubble-user);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 6px;
+            border-bottom-left-radius: 18px;
+        }
+
+        .message.bot {
+            background: var(--bubble-bot);
+            color: var(--text-dark);
+            align-self: flex-start;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 18px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .message.bot .sender {
+            font-weight: 600;
+            font-size: 11px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 3px;
+        }
+
+        .message.bot .sender .verified-icon {
+            color: var(--verified-blue);
+            font-size: 14px;
+        }
+
+        .message.bot .sender .logo-avatar {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: inline-block;
+            vertical-align: middle;
+            border: 1px solid rgba(66, 165, 245, 0.2);
+        }
+
+        .message .time {
+            font-size: 9px;
+            opacity: 0.5;
+            display: block;
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        .message.user .time {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .message.bot .time {
+            color: var(--text-muted);
+        }
+
+        .message.bot a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .message.bot a:hover {
+            text-decoration: underline;
+        }
+
+        .message.bot ul,
+        .message.bot ol {
+            padding-left: 20px;
+            margin: 4px 0;
+        }
+
+        .message.bot strong {
+            color: var(--primary-dark);
+        }
+
+        /* ===== DETAIL TRANSAKSI ===== */
+        .tx-detail-card {
+            background: #f1f5f9;
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin: 6px 0;
+            border-left: 4px solid var(--primary);
+            font-size: 12.5px;
+            width: 100%;
+        }
+
+        .tx-detail-card .tx-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .tx-detail-card .tx-row:last-child {
+            border-bottom: none;
+        }
+
+        .tx-detail-card .tx-label {
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .tx-detail-card .tx-value {
+            font-weight: 600;
+            font-size: 12px;
+            text-align: right;
+        }
+
+        .tx-detail-card .tx-value.success {
+            color: #43a047;
+        }
+        .tx-detail-card .tx-value.pending {
+            color: #fb8c00;
+        }
+        .tx-detail-card .tx-value.failed {
+            color: #e53935;
+        }
+
+        .tx-detail-card .tx-status-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tx-detail-card .tx-status-badge.success {
+            background: #e8f5e9;
+            color: #43a047;
+        }
+        .tx-detail-card .tx-status-badge.pending {
+            background: #fff3e0;
+            color: #fb8c00;
+        }
+        .tx-detail-card .tx-status-badge.failed {
+            background: #fce4ec;
+            color: #e53935;
+        }
+
+        .tx-detail-card .tx-id {
+            font-size: 10px;
+            color: var(--text-muted);
+            word-break: break-all;
+            font-weight: 400;
+        }
+
+        @keyframes msgIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 12px 18px;
+            background: white;
+            border-radius: 20px;
+            border-bottom-left-radius: 6px;
+            max-width: 72px;
+            align-self: flex-start;
+            box-shadow: var(--shadow-msg);
+            margin-bottom: 4px;
+        }
+
+        .typing-indicator span {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            display: inline-block;
+            animation: typingDot 1.4s ease-in-out infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingDot {
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.3;
+            }
+            30% {
+                transform: translateY(-8px);
+                opacity: 1;
+            }
+        }
+
+        /* ===== QUICK REPLY ===== */
+        .quick-reply-wrapper {
+            align-self: flex-start;
+            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-width: 100%;
+        }
+
+        .quick-reply-btn {
+            padding: 7px 16px;
+            border: 1.5px solid var(--primary);
+            border-radius: 24px;
+            background: white;
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Poppins', sans-serif;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .quick-reply-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(66, 165, 245, 0.25);
+        }
+
+        .quick-reply-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== FOOTER ===== */
+        .chat-footer {
+            padding: 12px 16px;
+            border-top: 1px solid #e8edf2;
+            background: white;
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            align-items: center;
+        }
+
+        .chat-footer input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 30px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+            transition: 0.2s;
+            background: #f8fafc;
+        }
+
+        .chat-footer input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.1);
+            background: white;
+        }
+
+        .chat-footer input::placeholder {
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        .chat-footer .send-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px;
+            background: var(--primary-gradient);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Poppins', sans-serif;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(66, 165, 245, 0.25);
+        }
+
+        .chat-footer .send-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(66, 165, 245, 0.35);
+        }
+
+        .chat-footer .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .chat-footer .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+            }
+            .chat-container {
+                max-height: 100vh;
+                border-radius: 0;
+                height: 100vh;
+            }
+            .chat-header {
+                padding: 14px 16px 12px 16px;
+            }
+            .chat-header .info h1 {
+                font-size: 15px;
+            }
+            .chat-messages {
+                padding: 12px 14px;
+            }
+            .message {
+                font-size: 12.5px;
+                padding: 10px 14px;
+            }
+            .chat-footer {
+                padding: 10px 12px;
+            }
+            .chat-footer input {
+                font-size: 13px;
+                padding: 10px 14px;
+            }
+            .chat-footer .send-btn {
+                font-size: 14px;
+                padding: 10px 16px;
+            }
+            .quick-reply-btn {
+                font-size: 10px;
+                padding: 5px 12px;
+            }
+            .chat-header .user-info {
+                max-width: 80px;
+                font-size: 9px;
+            }
+            .tx-detail-card {
+                padding: 10px 12px;
+                font-size: 11.5px;
+            }
+            .tx-detail-card .tx-label {
+                font-size: 10px;
+            }
+            .tx-detail-card .tx-value {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .chat-header .info h1 {
+                font-size: 13px;
+            }
+            .chat-header .badge-ai {
+                font-size: 7px;
+                padding: 1px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+
+        <!-- ===== HEADER ===== -->
+        <div class="chat-header">
+            <div class="avatar">
+                <img src="https://images.bukaolshop.com/hosting/161728/2543dbc67436690722.png" alt="JAYPAY Logo" />
+            </div>
+            <div class="info">
+                <h1>
+                    CS JAYPAY
+                    <span class="badge-ai"><i class="fas fa-microchip"></i> AI</span>
+                </h1>
+                <p>
+                    <span class="dot-online"></span>
+                    Online 24 Jam • Siap Membantu
+                    <span class="ai-status-bar">
+                        <span class="status-dot online" id="statusDot"></span>
+                        <span id="statusText">AI Online</span>
+                    </span>
+                </p>
+            </div>
+            <div class="user-info" id="userNameDisplay">👤 {{nama_user}}</div>
+        </div>
+
+        <!-- ===== MESSAGES ===== -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <span class="sender">
+                    <img class="logo-avatar" src="https://images.bukaolshop.com/hosting/161728/2543dbc67436690722.png" alt="JAYPAY" />
+                    CS JAYPAY
+                    <i class="fas fa-check-circle verified-icon"></i>
+                </span>
+                Halo kak! 👋 Selamat datang di layanan <b>CS JAYPAY</b>.<br><br>
+                Saya adalah <b>Asisten AI JAYPAY</b> yang siap membantu Anda 24 jam penuh.<br>
+                Silakan tanyakan apapun tentang JAYPAY. Saya akan merespons dengan cepat! 😊
+                <span class="time">Sekarang</span>
+            </div>
+            <div class="quick-reply-wrapper" id="quickReplyWrapper">
+                <button class="quick-reply-btn" data-msg="Min, cek transaksi saya">📦 Cek Transaksi</button>
+                <button class="quick-reply-btn" data-msg="Cara topup saldo JAYPAY?">💰 Topup Saldo</button>
+                <button class="quick-reply-btn" data-msg="Bagaimana cara hubungi admin?">👤 Hubungi Admin</button>
+                <button class="quick-reply-btn" data-msg="Info keamanan akun JAYPAY">🔐 Keamanan Akun</button>
+                <button class="quick-reply-btn" data-msg="Apa itu JAYPAY?">ℹ️ Info JAYPAY</button>
+                <button class="quick-reply-btn" data-msg="Cara beli pulsa di JAYPAY">📱 Beli Pulsa</button>
+            </div>
+        </div>
+
+        <!-- ===== FOOTER ===== -->
+        <div class="chat-footer">
+            <input type="text" id="messageInput" placeholder="Ketik pesan..." />
+            <button class="send-btn" id="sendBtn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ================================================================
+            //  KONFIGURASI AI EMPERO
+            // ================================================================
+            const AI_CONFIG = {
+                apiUrl: 'https://free.empero.org/v1/chat/completions',
+                model: 'Qwen/Qwen3.8-Flash-Next-FP8',
+                apiKey: 'free',
+                maxTokens: 32768,
+                temperature: 0.7
+            };
+
+            // ================================================================
+            //  SYSTEM PROMPT - Asisten JAYPAY (Role AI)
+            // ================================================================
+            const SYSTEM_PROMPT = `Kamu adalah Asisten AI JAYPAY, customer service resmi dari platform JAYPAY.
+
+            IDENTITAS:
+            - Nama: Asisten JAYPAY
+            - Perusahaan: JAYPAY (platform digital payment dan topup)
+            - Sifat: Ramah, sopan, profesional, dan membantu
+            - Bahasa: Gunakan bahasa Indonesia yang santai tapi profesional, panggil user dengan "kak"
+
+            TUGAS UTAMA:
+            1. Membantu user dengan semua pertanyaan tentang JAYPAY
+            2. Memberikan informasi layanan (topup, transaksi, produk digital)
+            3. Membantu troubleshooting masalah ringan
+            4. Mengarahkan ke admin jika diperlukan
+
+            LAYANAN JAYPAY:
+            - Topup saldo (QRIS, Transfer Bank, E-Wallet)
+            - Pembelian pulsa & paket data (Telkomsel, Indosat, XL, Tri, Smartfren)
+            - Token listrik PLN (prabayar & pascabayar)
+            - Topup E-Wallet (DANA, OVO, GoPay, ShopeePay, LinkAja)
+            - Game Voucher (Mobile Legends, Free Fire, PUBG, dll)
+            - Pembayaran tagihan (BPJS, PDAM, Telkom, dll)
+
+            INFORMASI PENTING:
+            - Admin WhatsApp: 6289668590244
+            - Admin Telegram: @csjaypayid
+            - Email: hawiyadev@gmail.com
+            - Maintenance harian: 23.30 - 00.30 WIB
+            - Refund otomatis 1x24 jam untuk transaksi gagal
+
+            ATURAN:
+            1. Jangan pernah meminta password, PIN, atau OTP user
+            2. Jangan pernah memberikan informasi pribadi user ke pihak lain
+            3. Jika ada pertanyaan di luar layanan JAYPAY, arahkan ke admin
+            4. Jika user marah, tetap tenang dan profesional
+            5. Gunakan emoji secukupnya untuk membuat chat lebih humanis
+
+            RESPON:
+            - Jawab dengan jelas, ringkas, dan informatif
+            - Gunakan format HTML untuk membuat teks lebih terstruktur (bold, list, dll)
+            - Jika transaksi gagal, berikan solusi dan arahkan ke admin jika perlu
+            - Selalu tawarkan bantuan tambahan di akhir pesan
+            - Jangan pernah mengatakan "saya tidak tahu" - usahakan bantu semaksimal mungkin`;
+
+            // ================================================================
+            //  FULLSCREEN
+            // ================================================================
+            function goFullscreen() {
+                var el = document.documentElement;
+                if (el.requestFullscreen) {
+                    el.requestFullscreen().catch(function() {});
+                } else if (el.webkitRequestFullscreen) {
+                    el.webkitRequestFullscreen();
+                } else if (el.msRequestFullscreen) {
+                    el.msRequestFullscreen();
+                }
+                window.scrollTo(0, 1);
+            }
+
+            var firstInteraction = true;
+            document.addEventListener('click', function() {
+                if (firstInteraction) {
+                    firstInteraction = false;
+                    goFullscreen();
+                }
+            });
+            document.addEventListener('touchstart', function() {
+                if (firstInteraction) {
+                    firstInteraction = false;
+                    goFullscreen();
+                }
+            });
+
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    window.scrollTo(0, 1);
+                }, 300);
+            });
+
+            // ================================================================
+            //  USER DATA
+            // ================================================================
+            var id_user = '{{id_user}}';
+            var nama_user = '{{nama_user}}';
+            var membership = '{{nama_membership}}';
+            var baseUrl = 'https://jaypay.biz.id/orkut/?action=';
+
+            // ================================================================
+            //  DOM
+            // ================================================================
+            var messagesEl = document.getElementById('chatMessages');
+            var messageInput = document.getElementById('messageInput');
+            var sendBtn = document.getElementById('sendBtn');
+            var quickReplyWrapper = document.getElementById('quickReplyWrapper');
+            var userNameDisplay = document.getElementById('userNameDisplay');
+            var statusDot = document.getElementById('statusDot');
+            var statusText = document.getElementById('statusText');
+
+            var isProcessing = false;
+
+            // History percakapan untuk AI (dengan system prompt)
+            var conversationHistory = [{
+                role: 'system',
+                content: SYSTEM_PROMPT
+            }];
+
+            if (userNameDisplay && nama_user && !nama_user.includes('{{')) {
+                userNameDisplay.textContent = '👤 ' + nama_user;
+            } else {
+                userNameDisplay.textContent = '👤 Guest';
+            }
+
+            // ================================================================
+            //  HELPERS
+            // ================================================================
+            function formatDate(date) {
+                var y = date.getFullYear();
+                var m = ('0' + (date.getMonth() + 1)).slice(-2);
+                var d = ('0' + date.getDate()).slice(-2);
+                return y + '-' + m + '-' + d;
+            }
+
+            function formatRupiah(angka) {
+                if (!angka || isNaN(angka)) angka = 0;
+                var formatter = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                });
+                return formatter.format(angka).replace(/IDR/g, '').trim();
+            }
+
+            function getStatusClass(status) {
+                var s = (status || '').toLowerCase();
+                if (s === 'sukses' || s === 'success') return 'success';
+                if (s === 'pending') return 'pending';
+                return 'failed';
+            }
+
+            function getStatusDisplay(status) {
+                var s = (status || '').toLowerCase();
+                if (s === 'sukses' || s === 'success') return 'Sukses';
+                if (s === 'pending') return 'Pending';
+                return 'Gagal';
+            }
+
+            function detectTransactionId(text) {
+                var match = text.match(/TRX_[0-9]+/i);
+                if (match) return match[0];
+                match = text.match(/TRX[-_][0-9]+/i);
+                if (match) return match[0];
+                match = text.match(/#TRX[0-9]+/i);
+                if (match) return match[0].replace('#', '');
+                match = text.match(/[A-Z0-9_]{10,30}/);
+                if (match && match[0].length >= 8) return match[0];
+                return null;
+            }
+
+            function getTime() {
+                var now = new Date();
+                var h = String(now.getHours()).padStart(2, '0');
+                var m = String(now.getMinutes()).padStart(2, '0');
+                return h + ':' + m;
+            }
+
+            function setAIStatus(type, text) {
+                statusDot.className = 'status-dot ' + type;
+                statusText.textContent = text;
+            }
+
+            // ================================================================
+            //  API HISTORY (JAYPAY) - untuk cek transaksi
+            // ================================================================
+            function loadAllTransactions(callback) {
+                if (!id_user || id_user.includes('{{')) {
+                    if (callback) callback([]);
+                    return;
+                }
+                var today = new Date();
+                var start = new Date();
+                start.setDate(today.getDate() - 30);
+                var startStr = formatDate(start) + ' 00:00:00';
+                var endStr = formatDate(today) + ' 23:59:59';
+                var url = baseUrl + 'history&id_user=' + id_user + '&start_date=' + startStr + '&end_date=' + endStr;
+
+                $.ajax({
+                    url: url,
+                    method: 'GET',
+                    dataType: 'json',
+                    timeout: 30000,
+                    success: function(res) {
+                        if (res && res.success && res.data) {
+                            if (callback) callback(res.data);
+                        } else {
+                            if (callback) callback([]);
+                        }
+                    },
+                    error: function() {
+                        if (callback) callback([]);
+                    }
+                });
+            }
+
+            function searchTransactionById(refId, callback) {
+                loadAllTransactions(function(transactions) {
+                    if (!transactions || transactions.length === 0) {
+                        callback(null);
+                        return;
+                    }
+                    var found = null;
+                    var search = refId.toLowerCase().trim();
+                    for (var i = 0; i < transactions.length; i++) {
+                        var tx = transactions[i];
+                        if (tx.ref_id && tx.ref_id.toLowerCase() === search) {
+                            found = tx;
+                            break;
+                        }
+                        if (tx.id && tx.id.toLowerCase() === search) {
+                            found = tx;
+                            break;
+                        }
+                    }
+                    callback(found);
+                });
+            }
+
+            // ================================================================
+            //  BUILD DETAIL HTML
+            // ================================================================
+            function buildTransactionDetail(tx) {
+                var statusClass = getStatusClass(tx.status);
+                var statusDisplay = getStatusDisplay(tx.status);
+                var price = (tx.price_user && parseFloat(tx.price_user) !== 0) ?
+                    parseFloat(tx.price_user) :
+                    (parseFloat(tx.selling_price) || parseFloat(tx.price) || 0);
+                var product = tx.product_name || tx.buyer_sku_code || '-';
+                var buyer = tx.buyer_user || tx.customer_name || tx.customer_no || '-';
+
+                return `
+                    <div class="tx-detail-card">
+                        <div class="tx-row">
+                            <span class="tx-label">🆔 ID Transaksi</span>
+                            <span class="tx-value tx-id">${tx.ref_id || '-'}</span>
+                        </div>
+                        <div class="tx-row">
+                            <span class="tx-label">📦 Produk</span>
+                            <span class="tx-value">${product}</span>
+                        </div>
+                        <div class="tx-row">
+                            <span class="tx-label">👤 Pelanggan</span>
+                            <span class="tx-value">${buyer}</span>
+                        </div>
+                        <div class="tx-row">
+                            <span class="tx-label">💰 Harga</span>
+                            <span class="tx-value" style="color:${statusClass === 'success' ? '#43a047' : statusClass === 'pending' ? '#fb8c00' : '#e53935'}">${formatRupiah(price)}</span>
+                        </div>
+                        <div class="tx-row">
+                            <span class="tx-label">📅 Tanggal</span>
+                            <span class="tx-value" style="font-weight:400; font-size:11px;">${tx.created_at || '-'}</span>
+                        </div>
+                        <div class="tx-row" style="border-bottom:none;">
+                            <span class="tx-label">📌 Status</span>
+                            <span class="tx-value"><span class="tx-status-badge ${statusClass}">${statusDisplay}</span></span>
+                        </div>
+                        ${tx.sn ? `
+                        <div class="tx-row" style="border-bottom:none; margin-top:4px; border-top:1px dashed #e2e8f0; padding-top:4px;">
+                            <span class="tx-label">🔢 SN / Voucher</span>
+                            <span class="tx-value" style="font-weight:400; font-size:11px;">${tx.sn}</span>
+                        </div>` : ''}
+                    </div>
+                `;
+            }
+
+            // ================================================================
+            //  FUNGSI CEK TRANSAKSI (untuk disisipkan ke AI)
+            // ================================================================
+            function checkTransaction(userMsg, callback) {
+                var msg = userMsg.toLowerCase().trim();
+
+                // Deteksi ID transaksi
+                var detected = detectTransactionId(userMsg);
+                if (detected) {
+                    searchTransactionById(detected, function(tx) {
+                        if (!tx) {
+                            callback('❌ Transaksi dengan ID <b>' + detected +
+                                '</b> tidak ditemukan dalam 30 hari terakhir. Silakan cek kembali ID Anda atau hubungi admin.');
+                            return;
+                        }
+                        var detail = buildTransactionDetail(tx);
+                        var cls = getStatusClass(tx.status);
+                        var analysis = '';
+                        if (cls === 'failed') {
+                            analysis =
+                                '<div style="background:#fff3e0;border-radius:12px;padding:12px;margin:8px 0;"><b style="color:#e53935;">⚠️ Analisis Transaksi Gagal</b><br>Kemungkinan penyebab: saldo tidak cukup, nomor tujuan salah, atau server maintenance. Refund otomatis akan dilakukan dalam 1x24 jam. Jika belum refund, hubungi admin.</div>';
+                        } else if (cls === 'pending') {
+                            analysis =
+                                '<div style="background:#fff8e1;border-radius:12px;padding:12px;margin:8px 0;"><b style="color:#fb8c00;">⏳ Transaksi Pending</b><br>Transaksi masih dalam proses. Mohon tunggu beberapa saat. Jika sudah lebih dari 30 menit, silakan hubungi admin.</div>';
+                        } else {
+                            analysis =
+                                '<div style="background:#e8f5e9;border-radius:12px;padding:12px;margin:8px 0;"><b style="color:#43a047;">✅ Transaksi Berhasil</b><br>Transaksi telah selesai diproses. Jika ada kendala, hubungi admin.</div>';
+                        }
+                        callback('✅ <b>Detail Transaksi Ditemukan</b>\n' + detail + analysis +
+                            '\n\n💡 Ada pertanyaan lain? Saya siap membantu.');
+                    });
+                    return true;
+                }
+
+                // Keyword cek transaksi
+                var txKeywords = ['cek transaksi', 'riwayat transaksi', 'transaksi saya', 'lihat transaksi', 'history transaksi',
+                    'status transaksi', 'cek pesanan'
+                ];
+                for (var i = 0; i < txKeywords.length; i++) {
+                    if (msg.includes(txKeywords[i])) {
+                        loadAllTransactions(function(transactions) {
+                            if (!transactions || transactions.length === 0) {
+                                callback('📭 Anda belum memiliki riwayat transaksi dalam 30 hari terakhir. Silakan lakukan transaksi terlebih dahulu.');
+                                return;
+                            }
+                            var total = transactions.length;
+                            var sukses = 0,
+                                pending = 0,
+                                gagal = 0;
+                            var totalNominal = 0;
+                            transactions.forEach(function(tx) {
+                                var cls = getStatusClass(tx.status);
+                                if (cls === 'success') sukses++;
+                                else if (cls === 'pending') pending++;
+                                else gagal++;
+                                var price = (tx.price_user && parseFloat(tx.price_user) !== 0) ?
+                                    parseFloat(tx.price_user) :
+                                    (parseFloat(tx.selling_price) || parseFloat(tx.price) || 0);
+                                totalNominal += price;
+                            });
+                            var previews = transactions.slice(0, 3);
+                            var previewHtml = '';
+                            previews.forEach(function(tx) {
+                                var cls = getStatusClass(tx.status);
+                                var disp = getStatusDisplay(tx.status);
+                                var price = (tx.price_user && parseFloat(tx.price_user) !== 0) ?
+                                    parseFloat(tx.price_user) :
+                                    (parseFloat(tx.selling_price) || parseFloat(tx.price) || 0);
+                                var product = tx.product_name || tx.buyer_sku_code || '-';
+                                previewHtml +=
+                                    '<div class="tx-row"><span class="tx-label">' + product +
+                                    '</span><span class="tx-value ' + cls + '">' + formatRupiah(price) +
+                                    '</span></div>' +
+                                    '<div class="tx-row"><span class="tx-label">Status</span><span class="tx-value ' +
+                                    cls + '">' + disp + '</span></div>' +
+                                    '<div class="tx-row" style="border-bottom:1px dashed #eee;margin-bottom:4px;"><span class="tx-label">ID</span><span class="tx-value" style="font-size:9px;font-weight:400;color:var(--text-muted);">' +
+                                    (tx.ref_id || '-') + '</span></div>';
+                            });
+                            var more = total > 3 ?
+                                '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">📌 Ada ' + (
+                                    total - 3) +
+                                ' transaksi lainnya. Kirimkan ID transaksi untuk detail lengkap.</div>' :
+                                '';
+                            callback('📊 <b>Ringkasan Transaksi (30 Hari Terakhir)</b>\n' +
+                                'Total: ' + total + ' transaksi | 🟢 ' + sukses + ' sukses | 🟡 ' + pending +
+                                ' pending | 🔴 ' + gagal + ' gagal\n' +
+                                '💰 Total Nominal: ' + formatRupiah(totalNominal) + '\n\n' +
+                                '📋 <b>3 Transaksi Terakhir</b>\n' + previewHtml + more +
+                                '\n💡 Kirimkan ID transaksi untuk detail lengkap.');
+                        });
+                        return true;
+                    }
+                }
+
+                // Keyword gagal
+                var failKeywords = ['gagal', 'kenapa gagal', 'transaksi gagal', 'error', 'pembayaran gagal'];
+                for (var i = 0; i < failKeywords.length; i++) {
+                    if (msg.includes(failKeywords[i])) {
+                        callback('🙏 Mohon maaf atas kendala transaksi gagal yang Anda alami.\n\nUntuk membantu mengecek dan memberikan solusi, saya memerlukan <b>ID Transaksi</b> Anda.\n\n📌 Silakan kirimkan ID transaksi dengan format: <b>TRX_12345678</b>\n💡 Anda bisa menemukan ID transaksi di menu "Riwayat Transaksi" atau di email konfirmasi.\n\nSaya akan cek untuk Anda segera! 🔍');
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            // ================================================================
+            //  AI ENGINE - Empero API (FULL CHAT)
+            // ================================================================
+            function callAI(userMessage, callback) {
+                // Tambahkan pesan user ke history
+                conversationHistory.push({
+                    role: 'user',
+                    content: userMessage
+                });
+
+                setAIStatus('loading', '⏳ AI mengetik...');
+
+                // Kirim ke API Empero
+                fetch(AI_CONFIG.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + AI_CONFIG.apiKey
+                        },
+                        body: JSON.stringify({
+                            model: AI_CONFIG.model,
+                            messages: conversationHistory,
+                            max_tokens: AI_CONFIG.maxTokens,
+                            temperature: AI_CONFIG.temperature
+                        })
+                    })
+                    .then(function(response) {
+                        if (!response.ok) {
+                            return response.json().then(function(err) {
+                                throw new Error(err.error?.message || 'API error: ' + response.status);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        var reply = data.choices?.[0]?.message?.content || 'Maaf, saya tidak bisa merespons saat ini.';
+                        conversationHistory.push({
+                            role: 'assistant',
+                            content: reply
+                        });
+                        setAIStatus('online', '✅ AI Online');
+                        callback(reply);
+                    })
+                    .catch(function(error) {
+                        console.error('AI Error:', error);
+                        setAIStatus('offline', '⚠️ AI Error');
+
+                        // Fallback: coba lagi dengan pesan error
+                        var fallbackMsg = '🙏 Maaf kak, terjadi gangguan pada server AI. Silakan coba lagi nanti.\n\n' +
+                            'Atau Anda bisa langsung menghubungi admin:\n' +
+                            '📱 WhatsApp: 6289668590244\n' +
+                            '💬 Telegram: @csjaypayid\n\n' +
+                            'Saya siap membantu kembali setelah koneksi pulih. 😊';
+                        callback(fallbackMsg);
+                    });
+            }
+
+            // ================================================================
+            //  PROSES PESAN - Cek transaksi dulu, lalu AI
+            // ================================================================
+            function processMessage(userMsg, callback) {
+                // Cek transaksi dulu (fungsi lokal)
+                var handled = checkTransaction(userMsg, function(response) {
+                    callback(response);
+                });
+
+                if (handled) {
+                    return; // Sudah ditangani oleh checkTransaction
+                }
+
+                // Kirim ke AI Empero untuk pertanyaan lainnya
+                callAI(userMsg, callback);
+            }
+
+            // ================================================================
+            //  CHAT UI
+            // ================================================================
+            function addMessage(text, sender, time, isHtml) {
+                var div = document.createElement('div');
+                div.className = 'message ' + sender;
+                if (sender === 'bot') {
+                    var content = isHtml ? text : text.replace(/\n/g, '<br>');
+                    var senderHtml =
+                        `<span class="sender">
+                            <img class="logo-avatar" src="https://images.bukaolshop.com/hosting/161728/2543dbc67436690722.png" alt="JAYPAY" />
+                            CS JAYPAY
+                            <i class="fas fa-check-circle verified-icon"></i>
+                        </span>`;
+                    div.innerHTML = senderHtml + content + `<span class="time">${time || 'Sekarang'}</span>`;
+                } else {
+                    div.innerHTML = text.replace(/\n/g, '<br>') + `<span class="time">${time || 'Sekarang'}</span>`;
+                }
+                messagesEl.appendChild(div);
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            }
+
+            function showTyping() {
+                var typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.id = 'typingIndicator';
+                typingDiv.innerHTML = '<span></span><span></span><span></span>';
+                messagesEl.appendChild(typingDiv);
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            }
+
+            function hideTyping() {
+                var typing = document.getElementById('typingIndicator');
+                if (typing) typing.remove();
+            }
+
+            function sendMessage(text) {
+                if (!text || isProcessing) return;
+                var msg = text.trim();
+                if (!msg) return;
+
+                if (quickReplyWrapper) quickReplyWrapper.style.display = 'none';
+
+                addMessage(msg, 'user', getTime());
+
+                isProcessing = true;
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+
+                showTyping();
+                setAIStatus('loading', '⏳ Memproses...');
+
+                // Delay sedikit agar UI smooth
+                var delay = 400 + Math.random() * 600;
+                setTimeout(function() {
+                    hideTyping();
+                    processMessage(msg, function(response) {
+                        addMessage(response, 'bot', getTime(), true);
+                        isProcessing = false;
+                        messageInput.disabled = false;
+                        sendBtn.disabled = false;
+                        messageInput.focus();
+                        if (quickReplyWrapper) quickReplyWrapper.style.display = 'flex';
+                        setAIStatus('online', '✅ AI Online');
+                    });
+                }, delay);
+            }
+
+            // ================================================================
+            //  EVENTS
+            // ================================================================
+            sendBtn.addEventListener('click', function() {
+                var text = messageInput.value;
+                sendMessage(text);
+                messageInput.value = '';
+            });
+
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    var text = messageInput.value;
+                    sendMessage(text);
+                    messageInput.value = '';
+                }
+            });
+
+            document.querySelectorAll('.quick-reply-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var msg = this.dataset.msg;
+                    sendMessage(msg);
+                    if (quickReplyWrapper) quickReplyWrapper.style.display = 'none';
+                });
+            });
+
+            // ================================================================
+            //  INIT
+            // ================================================================
+            // Test koneksi AI
+            setAIStatus('online', '✅ AI Online');
+
+            messageInput.focus();
+            console.log('💬 CS JAYPAY + AI Empero siap membantu!');
+            console.log('🧠 Model:', AI_CONFIG.model);
+            console.log('📡 API:', AI_CONFIG.apiUrl);
+            console.log('📝 System Prompt:', SYSTEM_PROMPT.substring(0, 100) + '...');
+
+        })();
+    </script>
+
+</body>
+</html>
